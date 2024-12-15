@@ -1,0 +1,15 @@
+{% if cf_recommendations %}
+    <h2>Recommendations</h2>
+    <ul>
+        {% for movie in cf_recommendations %}
+            <li class="recommendation-item">
+                <div class="movie-info">
+                    <strong>{{ movie.title_russian }}</strong>
+                    <div class="genres">{{ movie.genre }}</div>
+                    <div class="rating">Рейтинг: {{ movie.rating_imdb_value }}</div>
+                </div>
+                <button class="watched-button" data-user-id="{{ user_id }}" data-movie-id="{{ movie.id }}">Просмотрено</button>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}

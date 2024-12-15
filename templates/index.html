@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="content-box">
+    <h2>Найдите идеальный фильм</h2>
+    <p>Выбирайте фильм, а мы подберем вам похожие на него.</p>
+    <a href="{{ url_for('index') }}" class="recommendation-button">Поиск</a>
+</div>
+
+<div class="content-box">
+    <h2>Как работает наша система</h2>
+    <p>Мы анализируем ваши предпочтения, сравниваем с другими пользователями системы, чтобы предложить вам наиболее точные рекомендации.</p>
+    <p>Если ничего не подходит, вы всегда можете ввести запрос вручную, и система покажет вам список фильмов.</p>
+</div>
+
+<div class="content-box">
+    <h2>Рекомендатор</h2>
+    <form method="POST">
+        <label for="user_id">User ID:</label>
+        <input type="text" id="user_id" name="user_id">
+        <label for="search_query">Поиск:</label>
+        <input type="text" id="search_query" name="search_query">
+        <label for="method">Опция:</label>
+        <select id="method" name="method">
+            <option value="cf">Рекомендация по аккаунту</option>
+            <option value="content">Рекомендации по поиску</option>
+        </select>
+        <button type="submit" class="recommendation-button">Получить рекомендацию</button>
+    </form>
+
+    {% if recommendations %}
+        <h2>Recommendations</h2>
+        <ul id="recommendations-list">
+            {% for movie in recommendations %}
+                <li class="recommendation-item">
+                    <div class="movie-info">
+                        <strong>{{ movie.title_russian }}</strong>
+                        <div class="genres">{{ movie.genre }}</div>
+                        <div class="rating">Рейтинг: {{ movie.rating_imdb_value }}</div>
+                    </div>
+                    <button class="watched-button" data-user-id="{{ user_id }}" data-movie-id="{{ movie.id }}">Просмотрено</button>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</div>
+
+<script>
+    document.querySelectorAll('.watched-button').forEach(button => {
+        button.addEventListener('click', function() {
+            const user_id = this.getAttribute('data-user-id');
+            const movie_id = this.getAttribute('data-movie-id');
+            const search_query = document.getElementById('search_query').value;
+
+            fetch('/update_recommendations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'user_id': user_id,
+                    'viewed_movie_id': movie_id,
+                    'user_query': search_query
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Обновление списка рекомендаций на странице
+                const recommendationsList = document.getElementById('recommendations-list');
+                recommendationsList.innerHTML = '';
+                data.cf_recommendations.forEach(movie => {
+                    const li = document.createElement('li');
+                    li.className = 'recommendation-item';
+                    const movieInfo = document.createElement('div');
+                    movieInfo.className = 'movie-info';
+                    const movieTitle = document.createElement('strong');
+                    movieTitle.textContent = movie.title_russian;
+                    const movieGenres = document.createElement('div');
+                    movieGenres.className = 'genres';
+                    movieGenres.textContent = movie.genre.split(' ').map(genre => genre.trim().charAt(0).toUpperCase() + genre.trim().slice(1)).join(' ');
+                    const movieRating = document.createElement('div');
+                    movieRating.className = 'rating';
+                    movieRating.textContent = `Рейтинг: ${movie.rating_imdb_value}`;
+                    movieInfo.appendChild(movieTitle);
+                    movieInfo.appendChild(movieGenres);
+                    movieInfo.appendChild(movieRating);
+                    const button = document.createElement('button');
+                    button.textContent = 'Просмотрено';
+                    button.classList.add('watched-button');
+                    button.setAttribute('data-user-id', user_id);
+                    button.setAttribute('data-movie-id', movie.id);
+                    button.addEventListener('click', function() {
+                        const user_id = this.getAttribute('data-user-id');
+                        const movie_id = this.getAttribute('data-movie-id');
+                        const search_query = document.getElementById('search_query').value;
+
+                        fetch('/update_recommendations', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: new URLSearchParams({
+                                'user_id': user_id,
+                                'viewed_movie_id': movie_id,
+                                'user_query': search_query
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            // Обновление списка рекомендаций на странице
+                            const recommendationsList = document.getElementById('recommendations-list');
+                            recommendationsList.innerHTML = '';
+                            data.cf_recommendations.forEach(movie => {
+                                const li = document.createElement('li');
+                                li.className = 'recommendation-item';
+                                const movieInfo = document.createElement('div');
+                                movieInfo.className = 'movie-info';
+                                const movieTitle = document.createElement('strong');
+                                movieTitle.textContent = movie.title_russian;
+                                const movieGenres = document.createElement('div');
+                                movieGenres.className = 'genres';
+                                movieGenres.textContent = movie.genre.split(' ').map(genre => genre.trim().charAt(0).toUpperCase() + genre.trim().slice(1)).join(' ');
+                                const movieRating = document.createElement('div');
+                                movieRating.className = 'rating';
+                                movieRating.textContent = `Рейтинг: ${movie.rating_imdb_value}`;
+                                movieInfo.appendChild(movieTitle);
+                                movieInfo.appendChild(movieGenres);
+                                movieInfo.appendChild(movieRating);
+                                const button = document.createElement('button');
+                                button.textContent = 'Просмотрено';
+                                button.classList.add('watched-button');
+                                button.setAttribute('data-user-id', user_id);
+                                button.setAttribute('data-movie-id', movie.id);
+                                li.appendChild(movieInfo);
+                                li.appendChild(button);
+                                recommendationsList.appendChild(li);
+                            });
+                        });
+                    });
+                    li.appendChild(movieInfo);
+                    li.appendChild(button);
+                    recommendationsList.appendChild(li);
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

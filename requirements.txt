@@ -1,0 +1,13 @@
+Flask
+pandas
+numpy
+scikit-learn
+nltk
+pymorphy2
+requests
+gensim
+tqdm
+gunicorn
+python-dotenv
+surprise
+implicit
